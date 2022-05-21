@@ -56,7 +56,7 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(null),
       } as any);
 
-      expect(await service.findOne('')).toEqual(null);
+      expect(await service.findOne('')).toBe(null);
     });
   });
 });
