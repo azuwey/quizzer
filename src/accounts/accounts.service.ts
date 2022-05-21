@@ -8,7 +8,7 @@ export class AccountsService {
     throw 'This action adds a new account';
   }
 
-  findOne(username: string): Promise<Account> {
-    throw `This action returns an account with ${username} username`;
+  findOne(emailAddress: string): Promise<Account | null> {
+    throw `This action returns an account with ${emailAddress} emailAddress`;
   }
 }
