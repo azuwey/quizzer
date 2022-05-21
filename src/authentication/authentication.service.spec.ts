@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
+import { hashSync } from 'bcrypt';
 import { AccountsService } from '../accounts/accounts.service';
 import { Account } from '../accounts/schemas/account.schema';
+import { BCRYPT } from '../constants/constants';
 import { AuthenticationService } from './authentication.service';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
-import { JwtService } from '@nestjs/jwt';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
   let accountService: AccountsService;
 
   const mockAccount: Account = {
-    email: 'test@test.com',
-    passwordHash:
-      '$2y$12$R3Es6goCKnJ5hjOVlM4UruF7HEuXjWO4LgNsbtpO3OV0oGqYP5b8C', // hash of "test" rounds at 12
+    emailAddress: 'test@test.com',
+    passwordHash: hashSync('test', BCRYPT.ROUNDS),
   };
 
   const mockJwtSignature = 'xxxxx.xxxxx.xxxxx';
@@ -61,13 +62,22 @@ describe('AuthenticationService', () => {
         .spyOn(accountService, 'findOne')
         .mockImplementationOnce(() => Promise.resolve(null));
 
-      expect(await service.signUp(mockAccount)).not.toThrow();
+      expect(
+        await service.signUp({
+          emailAddress: 'test@test.com',
+          password: 'test',
+        }),
+      ).not.toThrow();
     });
 
     it('should throw an error', async () => {
-      expect(async () => await service.signUp(mockAccount)).toThrowError(
-        new EmailIsAlreadyInUseException(),
-      );
+      expect(
+        async () =>
+          await service.signUp({
+            emailAddress: 'test@test.com',
+            password: 'test',
+          }),
+      ).toThrowError(new EmailIsAlreadyInUseException());
     });
   });
 

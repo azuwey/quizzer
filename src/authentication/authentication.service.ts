@@ -3,8 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Account } from '../accounts/schemas/account.schema';
 import { AccountsService } from '../accounts/accounts.service';
 import { ISignInResponse } from './interfaces/signInResponse.interface';
-import { SignInDto } from './dto/signIn.dto';
-import { SignUpDto } from './dto/signUp.dto';
 
 @Injectable()
 export class AuthenticationService {
