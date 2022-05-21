@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
-import { Account } from './schemas/account.schema';
+import { Account, AccountDocument } from './schemas/account.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class AccountsService {
+  constructor(
+    @InjectModel(Account.name) private catModel: Model<AccountDocument>,
+  ) {}
+
   create(createAccountDto: CreateAccountDto): Promise<Account> {
     throw 'This action adds a new account';
   }
