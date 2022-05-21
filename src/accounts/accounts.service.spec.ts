@@ -1,19 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AccountsService } from './accounts.service';
-import { Account } from './schemas/account.schema';
-import { AccountDoesNotExistException } from './exceptions/accountDoesNotExist.exception';
-import { EmailIsAlreadyInUse } from './exceptions/emailIsAlreadyInUse.exception';
 import { getModelToken } from '@nestjs/mongoose';
+import { AccountsService } from './accounts.service';
+import { Account, AccountDocument } from './schemas/account.schema';
 import { Model } from 'mongoose';
 
 describe('AccountsService', () => {
   let service: AccountsService;
-  let model: Model<Account>;
+  let model: Model<AccountDocument>;
 
   const mockAccount = {
     email: 'test@test.com',
-    passwordHash:
-      '$2y$12$ptQ57YEK4LyBkOevis7mVe3qdaK0wiNtFHYhOPobuDbsZ5I3s/W1C', // hash of "test" at cost 12
+    passwordHash: 'some_bcrypt_hash',
   };
 
   beforeEach(async () => {
@@ -23,8 +20,6 @@ describe('AccountsService', () => {
         {
           provide: getModelToken(Account.name),
           useValue: {
-            new: jest.fn().mockResolvedValue(mockAccount),
-            constructor: jest.fn().mockResolvedValue(mockAccount),
             findOne: jest.fn(),
             create: jest.fn(),
             exec: jest.fn(),
@@ -34,7 +29,7 @@ describe('AccountsService', () => {
     }).compile();
 
     service = module.get<AccountsService>(AccountsService);
-    model = module.get<Model<Account>>(getModelToken(Account.name));
+    model = module.get<Model<AccountDocument>>(getModelToken(Account.name));
   });
 
   describe('create', () => {
@@ -43,27 +38,7 @@ describe('AccountsService', () => {
         .spyOn(model, 'create')
         .mockImplementationOnce(() => Promise.resolve(mockAccount));
 
-      expect(
-        await service.create({
-          email: 'test@test.com',
-          password: 'test',
-        }),
-      ).toEqual(mockAccount);
-    });
-
-    it('should throw an error', async () => {
-      const newAccount = {
-        email: 'test@test.com',
-        password: 'test',
-      };
-
-      jest
-        .spyOn(service, 'findOne')
-        .mockImplementation(() => Promise.resolve(mockAccount));
-
-      expect(() => service.create(newAccount)).toThrowError(
-        EmailIsAlreadyInUse,
-      );
+      expect(await service.create(mockAccount)).toEqual(mockAccount);
     });
   });
 
@@ -73,13 +48,15 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(mockAccount),
       } as any);
 
-      expect(await service.findOne('test')).toEqual(mockAccount);
+      expect(await service.findOne('test@test.com')).toEqual(mockAccount);
     });
 
-    it('should throw an error', async () => {
-      expect(() => service.findOne('')).toThrowError(
-        AccountDoesNotExistException,
-      );
+    it('should return null', async () => {
+      jest.spyOn(model, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(null),
+      } as any);
+
+      expect(await service.findOne('')).toEqual(null);
     });
   });
 });

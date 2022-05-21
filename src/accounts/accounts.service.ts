@@ -1,20 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { Account, AccountDocument } from './schemas/account.schema';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class AccountsService {
   constructor(
-    @InjectModel(Account.name) private catModel: Model<AccountDocument>,
+    @InjectModel(Account.name) private accountModel: Model<AccountDocument>,
   ) {}
 
   create(createAccountDto: CreateAccountDto): Promise<Account> {
-    throw 'This action adds a new account';
+    return this.accountModel.create(createAccountDto);
   }
 
   findOne(emailAddress: string): Promise<Account | null> {
-    throw `This action returns an account with ${emailAddress} emailAddress`;
+    if (emailAddress === '') {
+      return null;
+    }
+
+    return this.accountModel.findOne({ emailAddress }).exec();
   }
 }

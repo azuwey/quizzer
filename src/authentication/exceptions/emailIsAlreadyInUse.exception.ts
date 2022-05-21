@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-export class EmailIsAlreadyInUse extends HttpException {
+export class EmailIsAlreadyInUseException extends HttpException {
   constructor() {
     super('This email is already in use', HttpStatus.CONFLICT);
   }

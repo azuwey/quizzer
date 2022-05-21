@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Account } from '../accounts/schemas/account.schema';
-import { ISignInResponse } from '../accounts/interfaces/signInResponse.interface';
-import { ISignUpResponse } from '../accounts/interfaces/signUpResponse.interface';
+import { ISignInResponse } from './interfaces/signInResponse.interface';
+import { ISignUpResponse } from './interfaces/signUpResponse.interface';
 import { CreateAccountDto } from '../accounts/dto/create-account.dto';
 
 @Injectable()
