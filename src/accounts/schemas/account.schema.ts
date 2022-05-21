@@ -6,7 +6,7 @@ export type AccountDocument = Account & Document;
 @Schema()
 export class Account {
   @Prop({ type: String, isRequired: true })
-  email: string;
+  emailAddress: string;
 
   @Prop({ type: String, isRequired: true })
   passwordHash: string;

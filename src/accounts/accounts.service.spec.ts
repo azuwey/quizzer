@@ -8,8 +8,8 @@ describe('AccountsService', () => {
   let service: AccountsService;
   let model: Model<AccountDocument>;
 
-  const mockAccount = {
-    email: 'test@test.com',
+  const mockAccount: Account = {
+    emailAddress: 'test@test.com',
     passwordHash: 'some_bcrypt_hash',
   };
 
