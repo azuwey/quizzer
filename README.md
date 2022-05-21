@@ -33,13 +33,13 @@ npm run start:prod
 ### Unit
 
 ```shell
-npm run start:prod
+npm run test
 ```
 
 ### E2E
 
 ```shell
-npm run start:prod
+npm run test:e2e
 ```
 
 ### Coverage
