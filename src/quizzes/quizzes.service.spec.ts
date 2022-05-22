@@ -97,19 +97,27 @@ describe('QuizService', () => {
     });
 
     it('should return null', async () => {
+      jest.spyOn(quizModel, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      } as any);
+
       expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(null);
     });
   });
 
   describe('findByUserId', () => {
     it('should return an array of quizzes', async () => {
-      expect(
-        await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      ).toContainEqual([mockQuiz]);
+      expect(await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual([
+        mockQuiz,
+      ]);
     });
 
     it('should return an empty array', async () => {
-      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toContainEqual(
+      jest.spyOn(quizModel, 'find').mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      } as any);
+
+      expect(await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(
         [],
       );
     });
