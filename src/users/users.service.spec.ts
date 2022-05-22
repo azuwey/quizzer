@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { UsersService } from './users.service';
-import { User, AccountDocument } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 
 describe('AccountsService', () => {
   let service: UsersService;
-  let model: Model<AccountDocument>;
+  let model: Model<UserDocument>;
 
   const mockUser: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
@@ -30,7 +30,7 @@ describe('AccountsService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    model = module.get<Model<AccountDocument>>(getModelToken(User.name));
+    model = module.get<Model<UserDocument>>(getModelToken(User.name));
   });
 
   describe('create', () => {
