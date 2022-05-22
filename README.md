@@ -8,7 +8,7 @@ Quizzer is a small backend API for creating quizzes and attempting quizzes
 npm install
 ```
 
-### Dot env file
+### Dot env files
 
 You need to create a `.env` file in the root folder of the project with the following content:
 
@@ -17,6 +17,17 @@ MONGODB_URI=mongodb://<username>:<password>@<host>
 JWT_SECRET=some_secret
 JWT_EXPIRY=expiration_time
 ```
+
+If you would like to run the E2E tests, you might also need to create a `.env.local` file with the following content:
+
+```shell
+MONGOMS_ARCHIVE_NAME=mongodb-<version>.tgz
+```
+
+You can find the versions here:
+- [osx](https://dl.mongodb.org/dl/osx/x86_64)
+- [window](https://www.mongodb.org/dl/win32)
+- [osx](https://dl.mongodb.org/dl/linux)
 
 ## Running the app
 

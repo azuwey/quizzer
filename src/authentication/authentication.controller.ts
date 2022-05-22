@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { SignUpDto } from './dto/signUp.dto';
-import { LocalAuthGuard } from './guards/local.guard';
+import { LocalAuthGuard } from './guards/localAuth.guard';
 import { ISignInRequest } from './interfaces/signInRequest.interface';
 
 @Controller('authentication')

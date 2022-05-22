@@ -50,7 +50,7 @@ export class AuthenticationService {
     return this.createAuthResponse(account._id);
   }
 
-  private createAuthResponse(_id: Types.ObjectId) {
-    return { access_token: this.jwtService.sign({ _id }) };
+  private createAuthResponse(_id: Types.ObjectId): IAuthResponse {
+    return { access_token: this.jwtService.sign({ sub: _id }) };
   }
 }
