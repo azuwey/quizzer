@@ -86,7 +86,12 @@ describe('AuthenticationService', () => {
 
   describe('signIn', () => {
     it('should return an access_token', async () => {
-      expect(await service.signIn(mockAccount)).toEqual({
+      expect(
+        await service.signIn({
+          emailAddress: 'test@test.com',
+          password: 'test',
+        }),
+      ).toEqual({
         access_token: mockJwtSignature,
       });
     });
