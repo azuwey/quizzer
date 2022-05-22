@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, models, Types } from 'mongoose';
 import { User } from '../users/schemas/user.schema';
 import { Answer } from './schemas/answer.schema';
 import { Attempt, AttemptDocument } from './schemas/attempt.schema';
@@ -61,9 +61,13 @@ describe('QuizService', () => {
         {
           provide: getModelToken(Quiz.name),
           useValue: {
-            findOne: jest.fn().mockResolvedValue(mockQuiz),
+            findOne: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(mockQuiz),
+            }),
+            find: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue([mockQuiz]),
+            }),
             create: jest.fn().mockResolvedValue(mockQuiz),
-            find: jest.fn().mockResolvedValue([mockQuiz]),
             exec: jest.fn(),
           },
         },
@@ -127,9 +131,9 @@ describe('QuizService', () => {
         ],
       };
 
-      jest.spyOn(attemptModel, 'create').mockReturnValue({
-        exec: jest.fn().mockResolvedValueOnce(expectedResult),
-      } as any);
+      jest
+        .spyOn(attemptModel, 'create')
+        .mockImplementationOnce(() => Promise.resolve(expectedResult));
 
       expect(
         await service.attempt(
@@ -155,9 +159,9 @@ describe('QuizService', () => {
         results: [],
       };
 
-      jest.spyOn(attemptModel, 'create').mockReturnValue({
-        exec: jest.fn().mockResolvedValueOnce(expectedResult),
-      } as any);
+      jest
+        .spyOn(attemptModel, 'create')
+        .mockImplementationOnce(() => Promise.resolve(expectedResult));
 
       expect(
         await service.attempt(
@@ -185,9 +189,59 @@ describe('QuizService', () => {
         ],
       };
 
-      jest.spyOn(attemptModel, 'create').mockReturnValue({
-        exec: jest.fn().mockResolvedValueOnce(expectedResult),
-      } as any);
+      jest
+        .spyOn(attemptModel, 'create')
+        .mockImplementationOnce(() => Promise.resolve(expectedResult));
+
+      expect(
+        await service.attempt(
+          {
+            quizId: mockQuiz._id.toString(),
+            answers: [
+              {
+                questionId: mockQuestions[0]._id.toString(),
+                answerId: mockQuestions[0].answers[0]._id.toString(),
+              },
+            ],
+          },
+          'aaaaaaaaaaaaaaaaaaaaaaaa',
+        ),
+      ).toEqual({
+        ...expectedResult,
+        score: 1,
+      });
+    });
+
+    it('should create a new attempt with 1 score because it only has incorrect answers', async () => {
+      const expectedResult: Attempt = {
+        _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+        quiz: mockQuiz._id,
+        user: mockUser._id,
+        results: [
+          {
+            _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+            attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+            question: mockQuestions[0]._id,
+            answer: mockQuestions[0].answers[0]._id,
+          },
+        ],
+      };
+
+      jest.spyOn(models, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          ...mockQuiz,
+          questions: [
+            {
+              ...mockQuestions[0],
+              answers: [mockAnswers[1]],
+            },
+          ],
+        }),
+      });
+
+      jest
+        .spyOn(attemptModel, 'create')
+        .mockImplementationOnce(() => Promise.resolve(expectedResult));
 
       expect(
         await service.attempt(

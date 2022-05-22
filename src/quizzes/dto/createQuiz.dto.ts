@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNotEmpty } from 'class-validator';
+import { ArrayMinSize, IsArray, IsBoolean, IsNotEmpty } from 'class-validator';
 
 class Answer {
   @IsNotEmpty()
@@ -13,10 +13,12 @@ class Question {
   question: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   answers: Answer[];
 }
 
 export class CreateQuizDto {
   @IsArray()
+  @ArrayMinSize(1)
   questions: Question[];
 }
