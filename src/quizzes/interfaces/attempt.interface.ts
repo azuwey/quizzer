@@ -1,6 +1,6 @@
 import { IAnswer } from './answer.interface';
 
-export interface ISubQuiz {
+export interface IAttempt {
   question: string;
-  answers: IAnswer[];
+  answers: Pick<IAnswer, 'isCorrect'>;
 }

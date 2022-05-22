@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { IQuestion } from '../interfaces/question.interface';
+import { User } from '../../users/schemas/user.schema';
+import { ISubQuiz } from '../interfaces/question.interface';
+import { Attempt } from './attempt.schema';
 
 export type QuizDocument = Quiz & Document;
 
@@ -16,7 +18,17 @@ export class Quiz {
       },
     ],
   })
-  questions: IQuestion[];
+  subQuizzes: ISubQuiz[];
+
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  owner: Types.ObjectId;
+
+  attempts?: Attempt[] = [];
 }
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);
+QuizSchema.virtual(Quiz.name, {
+  ref: Attempt.name,
+  localField: '_id',
+  foreignField: 'attempts',
+});
