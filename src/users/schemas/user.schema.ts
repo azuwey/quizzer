@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Quiz, QuizSchema } from '../../quizzes/schemas/quiz.schema';
+import { Quiz } from '../../quizzes/schemas/quiz.schema';
+import { Attempt } from '../../quizzes/schemas/attempt.schema';
 
 export type UserDocument = User & Document;
 
@@ -15,11 +16,17 @@ export class User {
   passwordHash: string;
 
   quizzes?: Quiz[] = [];
+  attempts?: Attempt[] = [];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-QuizSchema.virtual(User.name, {
+UserSchema.virtual('quizzes', {
   ref: Quiz.name,
   localField: '_id',
-  foreignField: 'quizzes',
+  foreignField: 'owner',
+});
+UserSchema.virtual('attempts', {
+  ref: Attempt.name,
+  localField: '_id',
+  foreignField: 'user',
 });

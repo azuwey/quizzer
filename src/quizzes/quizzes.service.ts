@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Quiz, QuizDocument } from './schemas/quiz.schema';
 import { Attempt } from './schemas/attempt.schema';
+import { CreateAttemptDto } from './dto/createAttempt.dto';
+import { CreateQuizDto } from './dto/createQuiz.dto';
 
 @Injectable()
 export class QuizzesService {
   constructor(@InjectModel(Quiz.name) private quizModel: Model<QuizDocument>) {}
 
-  create(): Quiz {
+  create(createQuizDto: CreateQuizDto, userId: string): Quiz {
     throw 'This creates a new quiz';
   }
 
@@ -20,7 +22,7 @@ export class QuizzesService {
     throw 'This returns an array of quizzes by userId';
   }
 
-  attempt(id: string): Attempt {
+  attempt(createAttemptDto: CreateAttemptDto, userId: string): Attempt {
     throw 'This returns the result of an attempt by id';
   }
 

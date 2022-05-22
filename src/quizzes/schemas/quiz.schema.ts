@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from '../../users/schemas/user.schema';
-import { ISubQuiz } from '../interfaces/question.interface';
 import { Attempt } from './attempt.schema';
+import { Question } from './question.schema';
+import { IStatistics } from '../interfaces/statistics.interface';
 
 export type QuizDocument = Quiz & Document;
 
@@ -10,25 +11,28 @@ export type QuizDocument = Quiz & Document;
 export class Quiz {
   _id: Types.ObjectId;
 
-  @Prop({
-    type: [
-      {
-        question: { type: String },
-        answers: [{ answer: { type: String }, isCorrect: { type: Boolean } }],
-      },
-    ],
-  })
-  subQuizzes: ISubQuiz[];
-
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   owner: Types.ObjectId;
 
+  questions: Question[];
   attempts?: Attempt[] = [];
+
+  // Dynamically calculate from the attempts
+  statistics?: IStatistics = {
+    attempts: 0,
+    completions: 0,
+    scores: 0,
+  };
 }
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);
-QuizSchema.virtual(Quiz.name, {
+QuizSchema.virtual('questions', {
+  ref: Question.name,
+  localField: '_id',
+  foreignField: 'quiz',
+});
+QuizSchema.virtual('attempts', {
   ref: Attempt.name,
   localField: '_id',
-  foreignField: 'attempts',
+  foreignField: 'quiz',
 });
