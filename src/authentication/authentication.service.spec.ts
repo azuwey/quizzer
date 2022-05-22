@@ -6,12 +6,14 @@ import { Account } from '../accounts/schemas/account.schema';
 import { BCRYPT } from '../constants/constants';
 import { AuthenticationService } from './authentication.service';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
+import { Types } from 'mongoose';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
   let accountService: AccountsService;
 
   const mockAccount: Account = {
+    _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
     emailAddress: 'test@test.com',
     passwordHash: hashSync('test', BCRYPT.ROUNDS),
   };
@@ -32,7 +34,7 @@ describe('AuthenticationService', () => {
         {
           provide: JwtService,
           useValue: {
-            sign: jest.fn().mockResolvedValue(mockJwtSignature),
+            sign: jest.fn().mockReturnValue(mockJwtSignature),
           },
         },
       ],
@@ -67,17 +69,18 @@ describe('AuthenticationService', () => {
           emailAddress: 'test@test.com',
           password: 'test',
         }),
-      ).not.toThrow();
+      ).toEqual({
+        access_token: mockJwtSignature,
+      });
     });
 
     it('should throw an error', async () => {
-      expect(
-        async () =>
-          await service.signUp({
-            emailAddress: 'test@test.com',
-            password: 'test',
-          }),
-      ).toThrowError(new EmailIsAlreadyInUseException());
+      await expect(
+        service.signUp({
+          emailAddress: 'test@test.com',
+          password: 'test',
+        }),
+      ).rejects.toThrowError(EmailIsAlreadyInUseException);
     });
   });
 

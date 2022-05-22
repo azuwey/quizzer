@@ -2,13 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { AccountsService } from './accounts.service';
 import { Account, AccountDocument } from './schemas/account.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 describe('AccountsService', () => {
   let service: AccountsService;
   let model: Model<AccountDocument>;
 
   const mockAccount: Account = {
+    _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
     emailAddress: 'test@test.com',
     passwordHash: 'some_bcrypt_hash',
   };
