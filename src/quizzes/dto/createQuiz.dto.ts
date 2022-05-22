@@ -5,7 +5,7 @@ class Answer {
   answer: string;
 
   @IsBoolean()
-  isCorrect: boolean;
+  isCorrect?: boolean = false;
 }
 
 class Question {

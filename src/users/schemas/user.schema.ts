@@ -21,12 +21,12 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('quizzes', {
-  ref: Quiz.name,
+  ref: 'Quiz',
   localField: '_id',
   foreignField: 'owner',
 });
 UserSchema.virtual('attempts', {
-  ref: Attempt.name,
+  ref: 'Attempt',
   localField: '_id',
   foreignField: 'user',
 });

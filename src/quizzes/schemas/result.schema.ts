@@ -10,13 +10,13 @@ export type ResultDocument = Result & Document;
 export class Result {
   _id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Attempt.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Attempt', required: true })
   attempt: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Question.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Question', required: true })
   question: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Answer.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Answer', required: true })
   answer: Types.ObjectId;
 }
 

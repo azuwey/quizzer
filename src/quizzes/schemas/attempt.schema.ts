@@ -10,10 +10,10 @@ export type AttemptDocument = Attempt & Document;
 export class Attempt {
   _id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Quiz.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Quiz', required: true })
   quiz: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 
   results: Result[];
@@ -24,7 +24,7 @@ export class Attempt {
 
 export const AttemptSchema = SchemaFactory.createForClass(Attempt);
 AttemptSchema.virtual('results', {
-  ref: Result.name,
+  ref: 'Result',
   localField: '_id',
   foreignField: 'attempt',
 });

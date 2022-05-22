@@ -11,7 +11,7 @@ export type QuizDocument = Quiz & Document;
 export class Quiz {
   _id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   owner: Types.ObjectId;
 
   questions: Question[];
@@ -27,12 +27,12 @@ export class Quiz {
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);
 QuizSchema.virtual('questions', {
-  ref: Question.name,
+  ref: 'Question',
   localField: '_id',
   foreignField: 'quiz',
 });
 QuizSchema.virtual('attempts', {
-  ref: Attempt.name,
+  ref: 'Attempt',
   localField: '_id',
   foreignField: 'quiz',
 });
