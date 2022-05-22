@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { hashSync } from 'bcrypt';
+import { Types } from 'mongoose';
 import { AccountsService } from '../accounts/accounts.service';
 import { Account } from '../accounts/schemas/account.schema';
 import { BCRYPT } from '../constants/constants';
 import { AuthenticationService } from './authentication.service';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
-import { Types } from 'mongoose';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -86,12 +86,7 @@ describe('AuthenticationService', () => {
 
   describe('signIn', () => {
     it('should return an access_token', async () => {
-      expect(
-        await service.signIn({
-          emailAddress: 'test@test.com',
-          password: 'test',
-        }),
-      ).toEqual({
+      expect(await service.signIn(mockAccount)).toEqual({
         access_token: mockJwtSignature,
       });
     });
