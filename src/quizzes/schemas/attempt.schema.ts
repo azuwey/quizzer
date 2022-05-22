@@ -19,7 +19,7 @@ export class Attempt {
   results: Result[];
 
   // Dynamically calculate from the correct answers
-  score: number;
+  score?: number = 0;
 }
 
 export const AttemptSchema = SchemaFactory.createForClass(Attempt);

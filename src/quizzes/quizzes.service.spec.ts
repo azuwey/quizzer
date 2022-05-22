@@ -1,15 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from '../users/schemas/user.schema';
 import { Answer } from './schemas/answer.schema';
-import { Attempt } from './schemas/attempt.schema';
+import { Attempt, AttemptDocument } from './schemas/attempt.schema';
 import { Question } from './schemas/question.schema';
-import { Quiz } from './schemas/quiz.schema';
+import { Quiz, QuizDocument } from './schemas/quiz.schema';
 import { QuizzesService } from './quizzes.service';
 
 describe('QuizService', () => {
   let service: QuizzesService;
+  let attemptModel: Model<Attempt>;
+  let quizModel: Model<Quiz>;
 
   const mockUser: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
@@ -52,14 +54,16 @@ describe('QuizService', () => {
           useValue: {
             findOne: jest.fn(),
             create: jest.fn(),
+            find: jest.fn(),
             exec: jest.fn(),
           },
         },
         {
           provide: getModelToken(Quiz.name),
           useValue: {
-            findOne: jest.fn(),
-            create: jest.fn(),
+            findOne: jest.fn().mockResolvedValue(mockQuiz),
+            create: jest.fn().mockResolvedValue(mockQuiz),
+            find: jest.fn().mockResolvedValue([mockQuiz]),
             exec: jest.fn(),
           },
         },
@@ -67,40 +71,48 @@ describe('QuizService', () => {
     }).compile();
 
     service = module.get<QuizzesService>(QuizzesService);
+    quizModel = module.get<Model<QuizDocument>>(getModelToken(Quiz.name));
+    attemptModel = module.get<Model<AttemptDocument>>(
+      getModelToken(Attempt.name),
+    );
   });
 
   describe('createQuiz', () => {
-    it('should create a new quiz', () => {
-      expect(service.create(mockQuiz, 'aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
-        mockQuiz,
-      );
+    it('should create a new quiz', async () => {
+      expect(
+        await service.create(mockQuiz, 'aaaaaaaaaaaaaaaaaaaaaaaa'),
+      ).toEqual(mockQuiz);
     });
   });
 
   describe('findOne', () => {
-    it('should return a quiz', () => {
-      expect(service.findOne('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(mockQuiz);
+    it('should return a quiz', async () => {
+      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
+        mockQuiz,
+      );
     });
 
-    it('should return null', () => {
-      expect(service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(null);
+    it('should return null', async () => {
+      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(null);
     });
   });
 
   describe('findByUserId', () => {
-    it('should return an array of quizzes', () => {
-      expect(service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaaa')).toContainEqual([
-        mockQuiz,
-      ]);
+    it('should return an array of quizzes', async () => {
+      expect(
+        await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+      ).toContainEqual([mockQuiz]);
     });
 
-    it('should return an empty array', () => {
-      expect(service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toContainEqual([]);
+    it('should return an empty array', async () => {
+      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toContainEqual(
+        [],
+      );
     });
   });
 
   describe('attempt', () => {
-    it('should create a new attempt with 0 score', () => {
+    it('should create a new attempt with 0 score', async () => {
       const expectedResult: Attempt = {
         _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
         quiz: mockQuiz._id,
@@ -113,10 +125,14 @@ describe('QuizService', () => {
             answer: mockQuestions[0].answers[1]._id,
           },
         ],
-        score: 0,
       };
+
+      jest.spyOn(attemptModel, 'create').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(expectedResult),
+      } as any);
+
       expect(
-        service.attempt(
+        await service.attempt(
           {
             quizId: mockQuiz._id.toString(),
             answers: [
@@ -128,29 +144,33 @@ describe('QuizService', () => {
           },
           'aaaaaaaaaaaaaaaaaaaaaaaa',
         ),
-      ).toEqual({});
+      ).toEqual(expectedResult);
     });
 
-    it('should create a new attempt with 0 score because of unanswered questions', () => {
+    it('should create a new attempt with 0 score because of unanswered questions', async () => {
       const expectedResult: Attempt = {
         _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
         quiz: mockQuiz._id,
         user: mockUser._id,
         results: [],
-        score: 0,
       };
+
+      jest.spyOn(attemptModel, 'create').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(expectedResult),
+      } as any);
+
       expect(
-        service.attempt(
+        await service.attempt(
           {
             quizId: mockQuiz._id.toString(),
             answers: [],
           },
           'aaaaaaaaaaaaaaaaaaaaaaaa',
         ),
-      ).toEqual({});
+      ).toEqual(expectedResult);
     });
 
-    it('should create a new attempt with 1 score', () => {
+    it('should create a new attempt with 1 score', async () => {
       const expectedResult: Attempt = {
         _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
         quiz: mockQuiz._id,
@@ -163,10 +183,14 @@ describe('QuizService', () => {
             answer: mockQuestions[0].answers[0]._id,
           },
         ],
-        score: 1,
       };
+
+      jest.spyOn(attemptModel, 'create').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(expectedResult),
+      } as any);
+
       expect(
-        service.attempt(
+        await service.attempt(
           {
             quizId: mockQuiz._id.toString(),
             answers: [
@@ -178,7 +202,10 @@ describe('QuizService', () => {
           },
           'aaaaaaaaaaaaaaaaaaaaaaaa',
         ),
-      ).toEqual({});
+      ).toEqual({
+        ...expectedResult,
+        score: 1,
+      });
     });
   });
 });
