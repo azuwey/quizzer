@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { AccountsService } from './accounts.service';
-import { Account, AccountDocument } from './schemas/account.schema';
 import { Model, Types } from 'mongoose';
+import { UsersService } from './users.service';
+import { User, AccountDocument } from './schemas/user.schema';
 
 describe('AccountsService', () => {
-  let service: AccountsService;
+  let service: UsersService;
   let model: Model<AccountDocument>;
 
-  const mockAccount: Account = {
+  const mockUser: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
     emailAddress: 'test@test.com',
     passwordHash: 'some_bcrypt_hash',
@@ -17,9 +17,9 @@ describe('AccountsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AccountsService,
+        UsersService,
         {
-          provide: getModelToken(Account.name),
+          provide: getModelToken(User.name),
           useValue: {
             findOne: jest.fn(),
             create: jest.fn(),
@@ -29,27 +29,27 @@ describe('AccountsService', () => {
       ],
     }).compile();
 
-    service = module.get<AccountsService>(AccountsService);
-    model = module.get<Model<AccountDocument>>(getModelToken(Account.name));
+    service = module.get<UsersService>(UsersService);
+    model = module.get<Model<AccountDocument>>(getModelToken(User.name));
   });
 
   describe('create', () => {
-    it('should return an account', async () => {
+    it('should return a user', async () => {
       jest
         .spyOn(model, 'create')
-        .mockImplementationOnce(() => Promise.resolve(mockAccount));
+        .mockImplementationOnce(() => Promise.resolve(mockUser));
 
-      expect(await service.create(mockAccount)).toEqual(mockAccount);
+      expect(await service.create(mockUser)).toEqual(mockUser);
     });
   });
 
   describe('findOne', () => {
-    it('should return an account', async () => {
+    it('should return a user', async () => {
       jest.spyOn(model, 'findOne').mockReturnValue({
-        exec: jest.fn().mockResolvedValueOnce(mockAccount),
+        exec: jest.fn().mockResolvedValueOnce(mockUser),
       } as any);
 
-      expect(await service.findOne('test@test.com')).toEqual(mockAccount);
+      expect(await service.findOne('test@test.com')).toEqual(mockUser);
     });
 
     it('should return null', async () => {

@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
-import { AccountsModule } from './accounts/accounts.module';
+import { UsersModule } from './users/users.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import configuration from './config/configuration';
 
 @Module({
   imports: [
-    AccountsModule,
+    UsersModule,
     AuthenticationModule,
     ConfigModule.forRoot({
       load: [configuration],

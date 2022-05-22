@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compareSync, hashSync } from 'bcrypt';
 import { Types } from 'mongoose';
-import { Account } from '../accounts/schemas/account.schema';
-import { AccountsService } from '../accounts/accounts.service';
 import { BCRYPT } from '../constants/constants';
+import { User } from '../users/schemas/user.schema';
+import { UsersService } from '../users/users.service';
 import { SignUpDto } from './dto/signUp.dto';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
 import { IAuthResponse } from './interfaces/authResponse.interface';
@@ -12,14 +12,14 @@ import { IAuthResponse } from './interfaces/authResponse.interface';
 @Injectable()
 export class AuthenticationService {
   constructor(
-    private accountsService: AccountsService,
+    private accountsService: UsersService,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(
     emailAddress: string,
     password: string,
-  ): Promise<Account | null> {
+  ): Promise<User | null> {
     const account = await this.accountsService.findOne(emailAddress);
 
     if (account !== null && compareSync(password, account.passwordHash)) {
@@ -46,7 +46,7 @@ export class AuthenticationService {
     return this.createAuthResponse(_id);
   }
 
-  async signIn(account: Account): Promise<IAuthResponse> {
+  async signIn(account: User): Promise<IAuthResponse> {
     return this.createAuthResponse(account._id);
   }
 

@@ -2,17 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { hashSync } from 'bcrypt';
 import { Types } from 'mongoose';
-import { AccountsService } from '../accounts/accounts.service';
-import { Account } from '../accounts/schemas/account.schema';
 import { BCRYPT } from '../constants/constants';
+import { UsersService } from '../users/users.service';
+import { User } from '../users/schemas/user.schema';
 import { AuthenticationService } from './authentication.service';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
-  let accountService: AccountsService;
+  let accountService: UsersService;
 
-  const mockAccount: Account = {
+  const mockUser: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
     emailAddress: 'test@test.com',
     passwordHash: hashSync('test', BCRYPT.ROUNDS),
@@ -25,10 +25,10 @@ describe('AuthenticationService', () => {
       providers: [
         AuthenticationService,
         {
-          provide: AccountsService,
+          provide: UsersService,
           useValue: {
-            create: jest.fn().mockResolvedValue(mockAccount),
-            findOne: jest.fn().mockResolvedValue(mockAccount),
+            create: jest.fn().mockResolvedValue(mockUser),
+            findOne: jest.fn().mockResolvedValue(mockUser),
           },
         },
         {
@@ -41,13 +41,13 @@ describe('AuthenticationService', () => {
     }).compile();
 
     service = module.get<AuthenticationService>(AuthenticationService);
-    accountService = module.get<AccountsService>(AccountsService);
+    accountService = module.get<UsersService>(UsersService);
   });
 
   describe('validateUser', () => {
     it('should return an account', async () => {
       expect(await service.validateUser('test@test.com', 'test')).toEqual(
-        mockAccount,
+        mockUser,
       );
     });
 
@@ -86,7 +86,7 @@ describe('AuthenticationService', () => {
 
   describe('signIn', () => {
     it('should return an access_token', async () => {
-      expect(await service.signIn(mockAccount)).toEqual({
+      expect(await service.signIn(mockUser)).toEqual({
         access_token: mockJwtSignature,
       });
     });

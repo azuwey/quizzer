@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { hashSync } from 'bcrypt';
 import { Types } from 'mongoose';
 import { LocalStrategy } from './local.strategy';
-import { Account } from '../../accounts/schemas/account.schema';
+import { User } from '../../users/schemas/user.schema';
 import { BCRYPT } from '../../constants/constants';
 import { AuthenticationService } from '../authentication.service';
 import { UnauthorizedException } from '@nestjs/common';
@@ -11,7 +11,7 @@ describe('LocalStrategy', () => {
   let strategy: LocalStrategy;
   let authenticationService: AuthenticationService;
 
-  const mockAccount: Account = {
+  const mockAccount: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
     emailAddress: 'test@test.com',
     passwordHash: hashSync('test', BCRYPT.ROUNDS),
