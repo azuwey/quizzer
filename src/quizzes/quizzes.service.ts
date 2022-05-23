@@ -10,6 +10,7 @@ import { Question, QuestionDocument } from './schemas/question.schema';
 import { Quiz, QuizDocument } from './schemas/quiz.schema';
 import { Result, ResultDocument } from './schemas/result.schema';
 import { QuizDoesNotExistException } from './exceptions/quizDoesNotExistException';
+import { QUIZ } from '../constants/constants';
 
 @Injectable()
 export class QuizzesService {
@@ -87,7 +88,48 @@ export class QuizzesService {
     createAttemptDto: CreateAttemptDto,
     userId: string,
   ): Promise<Attempt> {
-    throw 'This returns an attempt';
+    const quiz = await this.findOneId(createAttemptDto.quizId);
+    const attempt = await this.attemptModel.create({
+      quiz: quiz._id,
+      user: new Types.ObjectId(userId),
+      score: 0,
+      results: [],
+    });
+
+    let score = 0;
+    let results: Promise<Result>[] = [];
+
+    for (let question of quiz.questions) {
+      let selectedAnswer =
+        createAttemptDto.answers.find(
+          (answer) => question._id.toString() === answer.questionId,
+        )?.answerId ?? QUIZ.UNSELECTED_ANSWER;
+      let correctAnswer =
+        question.answers.find((answer) => answer.isCorrect)?._id.toString() ??
+        QUIZ.UNSELECTED_ANSWER;
+
+      if (selectedAnswer === correctAnswer) {
+        score += 1;
+      }
+
+      results.push(
+        this.ResultModel.create({
+          attempt: attempt._id,
+          question: question._id,
+          answer: new Types.ObjectId(selectedAnswer),
+        }),
+      );
+    }
+
+    attempt.score = score;
+    attempt.results.push(...(await Promise.all(results)));
+    await attempt.save();
+
+    quiz.attempts.push(attempt);
+
+    const obj = attempt.toObject();
+
+    return obj as Attempt;
   }
 
   async statistics(id: string): Promise<IStatistics> {
