@@ -71,7 +71,16 @@ export class QuizzesService {
   }
 
   async findByUserId(userId: string): Promise<Quiz[]> {
-    throw 'This returns an array of quizzes by userId';
+    const quiz = await this.quizModel
+      .findOne({ owner: new Types.ObjectId(userId) })
+      .populate([{ path: 'questions', populate: ['answers'] }])
+      .exec();
+
+    if (quiz === null) {
+      throw new QuizDoesNotExistException();
+    }
+
+    return quiz.toObject();
   }
 
   async attempt(
