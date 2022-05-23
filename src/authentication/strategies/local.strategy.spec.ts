@@ -24,7 +24,7 @@ describe('LocalStrategy', () => {
         {
           provide: AuthenticationService,
           useValue: {
-            validateUser: jest.fn().mockResolvedValue(mockAccount),
+            validateUserByEmail: jest.fn().mockResolvedValue(mockAccount),
           },
         },
       ],

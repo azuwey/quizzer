@@ -41,7 +41,7 @@ describe('AuthenticationService', () => {
       expect(
         await service.validateUserByEmail({
           emailAddress: 'test@test.com',
-          password: 'test',
+          password: '12345678',
         }),
       ).toEqual(mockUser);
     });
