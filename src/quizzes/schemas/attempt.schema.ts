@@ -23,6 +23,7 @@ export class Attempt {
 }
 
 export const AttemptSchema = SchemaFactory.createForClass(Attempt);
+AttemptSchema.set('toObject', { virtuals: true });
 AttemptSchema.virtual('results', {
   ref: 'Result',
   localField: '_id',

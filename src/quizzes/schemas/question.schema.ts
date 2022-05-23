@@ -25,7 +25,6 @@ QuestionSchema.virtual('answers', {
   ref: 'Answer',
   localField: '_id',
   foreignField: 'question',
-  getters: true,
 });
 QuestionSchema.virtual('results', {
   ref: 'Result',

@@ -54,7 +54,7 @@ export class QuizzesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
+  @Get('/statistics/:id')
   statistics(
     @Request() req: IJwtAuthenticatedRequest,
     @Param('id') id: string,

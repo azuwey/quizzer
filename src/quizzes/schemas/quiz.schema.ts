@@ -23,7 +23,6 @@ QuizSchema.virtual('questions', {
   ref: 'Question',
   localField: '_id',
   foreignField: 'quiz',
-  getters: true,
 });
 QuizSchema.virtual('attempts', {
   ref: 'Attempt',

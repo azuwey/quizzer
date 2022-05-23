@@ -281,6 +281,7 @@ describe('QuizService', () => {
                     attempt: mockAttemptCorrect._id,
                     question: mockQuestion._id,
                     answer: new Types.ObjectId(QUIZ.UNSELECTED_ANSWER),
+                    isCorrect: true,
                   },
                 ],
               },

@@ -18,6 +18,9 @@ export class Result {
 
   @Prop({ type: Types.ObjectId, ref: 'Answer', required: true })
   answer: Types.ObjectId;
+
+  @Prop({ type: Boolean, required: true })
+  isCorrect: boolean;
 }
 
 export const ResultSchema = SchemaFactory.createForClass(Result);

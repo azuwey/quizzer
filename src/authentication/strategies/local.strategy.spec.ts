@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { Types } from 'mongoose';
-import { LocalStrategy } from './local.strategy';
-import { User } from '../../users/schemas/user.schema';
 import { BCRYPT } from '../../constants/constants';
+import { User } from '../../users/schemas/user.schema';
 import { AuthenticationService } from '../authentication.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { LocalStrategy } from './local.strategy';
 
 describe('LocalStrategy', () => {
   let strategy: LocalStrategy;
@@ -45,7 +45,7 @@ describe('LocalStrategy', () => {
 
     it('should throw an error', async () => {
       jest
-        .spyOn(authenticationService, 'validateUser')
+        .spyOn(authenticationService, 'validateUserByEmail')
         .mockImplementationOnce(() => Promise.resolve(null));
 
       await expect(

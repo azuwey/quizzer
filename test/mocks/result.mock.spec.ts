@@ -7,6 +7,7 @@ export const mockResultCorrect: Result = {
   attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
   question: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
   answer: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+  isCorrect: true,
 };
 
 export const mockResultIncorrect: Result = {
@@ -14,6 +15,7 @@ export const mockResultIncorrect: Result = {
   attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
   question: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaab'),
   answer: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+  isCorrect: false,
 };
 
 export const mockResultProvider = {

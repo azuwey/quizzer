@@ -1,10 +1,12 @@
-import { IsArray, IsHexadecimal } from 'class-validator';
+import { IsArray, IsHexadecimal, IsNotEmpty } from 'class-validator';
 
 class Answer {
   @IsHexadecimal()
+  @IsNotEmpty()
   questionId: string;
 
   @IsHexadecimal()
+  @IsNotEmpty()
   answerId: string;
 }
 

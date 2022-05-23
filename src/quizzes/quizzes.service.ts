@@ -61,7 +61,12 @@ export class QuizzesService {
   async findOneId(id: string): Promise<Quiz | null> {
     const quiz = await this.quizModel
       .findOne({ _id: new Types.ObjectId(id) })
-      .populate([{ path: 'questions', populate: ['answers'] }])
+      .populate([
+        {
+          path: 'questions',
+          populate: { path: 'answers', select: '-isCorrect' },
+        },
+      ])
       .exec();
 
     if (quiz === null) {
@@ -74,7 +79,12 @@ export class QuizzesService {
   async findByUserId(userId: string): Promise<Quiz[]> {
     const quiz = await this.quizModel
       .findOne({ owner: new Types.ObjectId(userId) })
-      .populate([{ path: 'questions', populate: ['answers'] }])
+      .populate([
+        {
+          path: 'questions',
+          populate: { path: 'answers', select: '-isCorrect' },
+        },
+      ])
       .exec();
 
     if (quiz === null) {
@@ -88,7 +98,18 @@ export class QuizzesService {
     createAttemptDto: CreateAttemptDto,
     userId: string,
   ): Promise<Attempt> {
-    const quiz = await this.findOneId(createAttemptDto.quizId);
+    const quiz = await this.quizModel
+      .findOne({ _id: new Types.ObjectId(createAttemptDto.quizId) })
+      .populate([
+        { path: 'questions', populate: { path: 'answers' } },
+        { path: 'attempts' },
+      ])
+      .exec();
+
+    if (quiz === null) {
+      throw new QuizDoesNotExistException();
+    }
+
     const attempt = await this.attemptModel.create({
       quiz: quiz._id,
       user: new Types.ObjectId(userId),
@@ -108,7 +129,9 @@ export class QuizzesService {
         question.answers.find((answer) => answer.isCorrect)?._id.toString() ??
         QUIZ.UNSELECTED_ANSWER;
 
-      if (selectedAnswer === correctAnswer) {
+      const isCorrect = selectedAnswer === correctAnswer;
+
+      if (isCorrect) {
         score += 1;
       }
 
@@ -117,6 +140,7 @@ export class QuizzesService {
           attempt: attempt._id,
           question: question._id,
           answer: new Types.ObjectId(selectedAnswer),
+          isCorrect: isCorrect,
         }),
       );
     }
@@ -127,9 +151,7 @@ export class QuizzesService {
 
     quiz.attempts.push(attempt);
 
-    const obj = attempt.toObject();
-
-    return obj as Attempt;
+    return attempt.toObject();
   }
 
   async statistics(id: string): Promise<IStatistics> {
