@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Types } from 'mongoose';
+import { mockUser } from '../../test/mocks/user.mock.spec';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
 import { ISignInRequest } from './interfaces/signInRequest.interface';
@@ -40,13 +40,7 @@ describe('AuthenticationController', () => {
   describe('signIn', () => {
     it('should return an access_token', async () => {
       expect(
-        await controller.signIn({
-          user: {
-            _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            emailAddress: 'test@test.com',
-            passwordHash: 'test',
-          },
-        } as ISignInRequest),
+        await controller.signIn({ user: mockUser } as ISignInRequest),
       ).toEqual(mockResponse);
     });
   });

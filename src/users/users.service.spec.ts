@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { mockUser, mockUserProvider } from '../../test/mocks/user.mock.spec';
 import { UsersService } from './users.service';
 import { User, UserDocument } from './schemas/user.schema';
-import { mockUser, mockUserProvider } from '../../test/mocks/user.mock.spec';
 
 describe('AccountsService', () => {
   let service: UsersService;
@@ -34,7 +34,9 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(mockUser),
       } as any);
 
-      expect(await service.findOneByEmail('test@test.com')).toEqual(mockUser);
+      expect(await service.findOneByEmail(mockUser.emailAddress)).toEqual(
+        mockUser,
+      );
     });
 
     it('should return null', async () => {
@@ -54,7 +56,7 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(mockUser),
       } as any);
 
-      expect(await service.findOneById('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
+      expect(await service.findOneById(mockUser._id.toString())).toEqual(
         mockUser,
       );
     });
@@ -64,7 +66,7 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(null),
       } as any);
 
-      expect(await service.findOneById('aaaaaaaaaaaaaaaaaaaaaaab')).toBe(null);
+      expect(await service.findOneById(mockUser._id.toString())).toBe(null);
     });
   });
 });

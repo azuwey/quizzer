@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { mockUser } from '../../test/mocks/user.mock.spec';
 import { AuthenticationService } from './authentication.service';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
-import { mockUser } from '../../test/mocks/user.mock.spec';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
