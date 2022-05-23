@@ -14,11 +14,19 @@ export class UsersService {
     return this.accountModel.create(createAccountDto);
   }
 
-  findOne(emailAddress: string): Promise<User | null> {
+  findOneByEmail(emailAddress: string): Promise<User | null> {
     if (emailAddress === '') {
       return null;
     }
 
     return this.accountModel.findOne({ emailAddress }).exec();
+  }
+
+  findOneById(id: string): Promise<User | null> {
+    if (id === '') {
+      return null;
+    }
+
+    return this.accountModel.findOne({ _id: id }).exec();
   }
 }

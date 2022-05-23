@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { SignUpDto } from './dto/signUp.dto';
 import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.exception';
 import { IAuthResponse } from './interfaces/authResponse.interface';
+import { SignInDto } from './dto/signInDto';
 
 @Injectable()
 export class AuthenticationService {
@@ -16,11 +17,11 @@ export class AuthenticationService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(
-    emailAddress: string,
-    password: string,
-  ): Promise<User | null> {
-    const account = await this.accountsService.findOne(emailAddress);
+  async validateUserByEmail({
+    emailAddress,
+    password,
+  }: SignInDto): Promise<User | null> {
+    const account = await this.accountsService.findOneByEmail(emailAddress);
 
     if (account !== null && compareSync(password, account.passwordHash)) {
       return account;
@@ -29,8 +30,14 @@ export class AuthenticationService {
     return null;
   }
 
+  async validateUserById(id: string): Promise<User | null> {
+    return await this.accountsService.findOneById(id);
+  }
+
   async signUp(signUpDto: SignUpDto): Promise<IAuthResponse> {
-    const account = await this.accountsService.findOne(signUpDto.emailAddress);
+    const account = await this.accountsService.findOneByEmail(
+      signUpDto.emailAddress,
+    );
 
     if (account !== null) {
       throw new EmailIsAlreadyInUseException();

@@ -10,7 +10,7 @@ import { EmailIsAlreadyInUseException } from './exceptions/emailIsAlreadyInUse.e
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
-  let accountService: UsersService;
+  let userService: UsersService;
 
   const mockUser: User = {
     _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
@@ -28,7 +28,8 @@ describe('AuthenticationService', () => {
           provide: UsersService,
           useValue: {
             create: jest.fn().mockResolvedValue(mockUser),
-            findOne: jest.fn().mockResolvedValue(mockUser),
+            findOneByEmail: jest.fn().mockResolvedValue(mockUser),
+            findOneById: jest.fn().mockResolvedValue(mockUser),
           },
         },
         {
@@ -41,27 +42,33 @@ describe('AuthenticationService', () => {
     }).compile();
 
     service = module.get<AuthenticationService>(AuthenticationService);
-    accountService = module.get<UsersService>(UsersService);
+    userService = module.get<UsersService>(UsersService);
   });
 
-  describe('validateUser', () => {
+  describe('validateUserByEmail', () => {
     it('should return an account', async () => {
-      expect(await service.validateUser('test@test.com', 'test')).toEqual(
-        mockUser,
-      );
+      expect(
+        await service.validateUserByEmail({
+          emailAddress: 'test@test.com',
+          password: 'test',
+        }),
+      ).toEqual(mockUser);
     });
 
     it('should return null', async () => {
-      expect(await service.validateUser('test@test.com', 'bad_password')).toBe(
-        null,
-      );
+      expect(
+        await service.validateUserByEmail({
+          emailAddress: 'test@test.com',
+          password: 'bad_password',
+        }),
+      ).toBe(null);
     });
   });
 
   describe('signUp', () => {
     it('should create an account', async () => {
       jest
-        .spyOn(accountService, 'findOne')
+        .spyOn(userService, 'findOneByEmail')
         .mockImplementationOnce(() => Promise.resolve(null));
 
       expect(

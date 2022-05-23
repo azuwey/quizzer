@@ -73,16 +73,10 @@ npm run test:cov
 
 Quizzer is [BSD 3-Clause licensed](https://github.com/azuwey/quizzer/blob/main/LICENSE).
 
-## Endpoints
+## API
 
-### SignUp
+You can find swagger here (not fully working yet):
 
-```shell
-curl -X POST http://localhost:3000/authentication/sign-up -d '{"emailAddress": "test@test.com", "password": "changeme"}' -H "Content-Type: application/json"
 ```
-
-### SignIn
-
-```shell
-curl -X POST http://localhost:3000/authentication/sign-in -d '{"emailAddress": "test@test.com", "password": "changeme"}' -H "Content-Type: application/json"
+http://localhost:3000/api
 ```
