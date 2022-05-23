@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Promise } from 'mongoose';
+import { Model, Promise, Types } from 'mongoose';
 import { CreateAttemptDto } from './dto/createAttempt.dto';
 import { CreateQuizDto } from './dto/createQuiz.dto';
 import { IStatistics } from './interfaces/statistics.interface';
@@ -21,7 +21,39 @@ export class QuizzesService {
   ) {}
 
   async create(createQuizDto: CreateQuizDto, userId: string): Promise<Quiz> {
-    throw 'This creates a new quiz';
+    const quiz = await this.quizModel.create({
+      owner: new Types.ObjectId(userId),
+      questions: [],
+      attempts: [],
+    });
+
+    for (let question of createQuizDto.questions) {
+      let newQuestion = await this.questionModel.create({
+        question: question.question,
+        answers: [],
+        quiz: quiz._id,
+      });
+
+      let newAnswers = await Promise.all(
+        question.answers.map((answer) => {
+          return this.answerModel.create({
+            ...answer,
+            question: newQuestion._id,
+          });
+        }),
+      );
+
+      newQuestion.answers.push(...newAnswers);
+      await newQuestion.save();
+
+      quiz.questions.push(newQuestion);
+    }
+
+    await quiz.save();
+
+    return (
+      await quiz.populate([{ path: 'questions', populate: ['answers'] }])
+    ).toObject();
   }
 
   async findOneId(id: string): Promise<Quiz | null> {
