@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { AuthenticationModule } from './authentication/authentication.module';
-import { QuizzesModule } from './quizzes/quiz.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
 import configuration from './config/configuration';
 
 @Module({
