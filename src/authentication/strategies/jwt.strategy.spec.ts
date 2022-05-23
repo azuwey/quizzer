@@ -2,26 +2,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { mockUser } from '../../../test/mocks/user.mock.spec';
 import { AuthenticationService } from '../authentication.service';
-import { LocalStrategy } from './local.strategy';
+import { JwtStrategy } from './jwt.strategy';
 
-describe('LocalStrategy', () => {
-  let strategy: LocalStrategy;
+describe('JwtStrategy', () => {
+  let strategy: JwtStrategy;
   let authenticationService: AuthenticationService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LocalStrategy,
+        JwtStrategy,
         {
           provide: AuthenticationService,
           useValue: {
-            validateUserByEmail: jest.fn().mockResolvedValue(mockUser),
+            validateUserById: jest.fn().mockResolvedValue(mockUser),
           },
         },
       ],
     }).compile();
 
-    strategy = module.get<LocalStrategy>(LocalStrategy);
+    strategy = module.get<JwtStrategy>(JwtStrategy);
     authenticationService = module.get<AuthenticationService>(
       AuthenticationService,
     );
@@ -29,18 +29,18 @@ describe('LocalStrategy', () => {
 
   describe('validate', () => {
     it('should return an account', async () => {
-      expect(
-        await strategy.validate(mockUser.emailAddress, '12345678'),
-      ).toEqual(mockUser);
+      expect(await strategy.validate({ sub: mockUser._id.toString() })).toEqual(
+        { _id: mockUser._id.toString() },
+      );
     });
 
     it('should throw an error', async () => {
       jest
-        .spyOn(authenticationService, 'validateUserByEmail')
+        .spyOn(authenticationService, 'validateUserById')
         .mockImplementationOnce(() => Promise.resolve(null));
 
       await expect(
-        strategy.validate('test@test.com', 'test'),
+        strategy.validate({ sub: 'xxxx.xxxx.xxxx' }),
       ).rejects.toThrowError(UnauthorizedException);
     });
   });
