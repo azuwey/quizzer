@@ -9,6 +9,7 @@ import { Attempt, AttemptDocument } from './schemas/attempt.schema';
 import { Question, QuestionDocument } from './schemas/question.schema';
 import { Quiz, QuizDocument } from './schemas/quiz.schema';
 import { Result, ResultDocument } from './schemas/result.schema';
+import { QuizDoesNotExistException } from './exceptions/quizDoesNotExistException';
 
 @Injectable()
 export class QuizzesService {
@@ -57,7 +58,16 @@ export class QuizzesService {
   }
 
   async findOneId(id: string): Promise<Quiz | null> {
-    throw 'This returns a quiz by id';
+    const quiz = await this.quizModel
+      .findOne({ _id: new Types.ObjectId(id) })
+      .populate([{ path: 'questions', populate: ['answers'] }])
+      .exec();
+
+    if (quiz === null) {
+      throw new QuizDoesNotExistException();
+    }
+
+    return quiz.toObject();
   }
 
   async findByUserId(userId: string): Promise<Quiz[]> {
