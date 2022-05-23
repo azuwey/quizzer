@@ -1,32 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { UsersService } from './users.service';
 import { User, UserDocument } from './schemas/user.schema';
+import { mockUser, mockUserProvider } from '../../test/mocks/user.mock.spec';
 
 describe('AccountsService', () => {
   let service: UsersService;
   let model: Model<UserDocument>;
 
-  const mockUser: User = {
-    _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-    emailAddress: 'test@test.com',
-    passwordHash: 'some_bcrypt_hash',
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        {
-          provide: getModelToken(User.name),
-          useValue: {
-            findOne: jest.fn(),
-            create: jest.fn(),
-            exec: jest.fn(),
-          },
-        },
-      ],
+      providers: [UsersService, mockUserProvider],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -43,13 +28,13 @@ describe('AccountsService', () => {
     });
   });
 
-  describe('findOne', () => {
+  describe('findOneByEmail', () => {
     it('should return a user', async () => {
       jest.spyOn(model, 'findOne').mockReturnValue({
         exec: jest.fn().mockResolvedValueOnce(mockUser),
       } as any);
 
-      expect(await service.findOne('test@test.com')).toEqual(mockUser);
+      expect(await service.findOneByEmail('test@test.com')).toEqual(mockUser);
     });
 
     it('should return null', async () => {
@@ -57,7 +42,29 @@ describe('AccountsService', () => {
         exec: jest.fn().mockResolvedValueOnce(null),
       } as any);
 
-      expect(await service.findOne('')).toBe(null);
+      expect(await service.findOneByEmail('does_not_exist@test.com')).toBe(
+        null,
+      );
+    });
+  });
+
+  describe('findOneById', () => {
+    it('should return a user', async () => {
+      jest.spyOn(model, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(mockUser),
+      } as any);
+
+      expect(await service.findOneById('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
+        mockUser,
+      );
+    });
+
+    it('should return null', async () => {
+      jest.spyOn(model, 'findOne').mockReturnValue({
+        exec: jest.fn().mockResolvedValueOnce(null),
+      } as any);
+
+      expect(await service.findOneById('aaaaaaaaaaaaaaaaaaaaaaab')).toBe(null);
     });
   });
 });

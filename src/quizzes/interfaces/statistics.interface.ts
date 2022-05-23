@@ -1,5 +1,5 @@
 export interface IStatistics {
   attempts: number;
   completions: number;
-  scores: number;
+  averageScore: number;
 }

@@ -16,10 +16,10 @@ export class Attempt {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 
-  results: Result[];
-
-  // Dynamically calculate from the correct answers
+  @Prop({ type: Number, default: 0, required: true })
   score?: number = 0;
+
+  results: Result[];
 }
 
 export const AttemptSchema = SchemaFactory.createForClass(Attempt);

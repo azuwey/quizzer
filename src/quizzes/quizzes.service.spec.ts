@@ -1,205 +1,181 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model, models, Types } from 'mongoose';
-import { User } from '../users/schemas/user.schema';
-import { Answer } from './schemas/answer.schema';
+import { Model, Types } from 'mongoose';
+import {
+  mockAnswerCorrect,
+  mockAnswerIncorrect,
+  mockAnswerProvider,
+} from '../../test/mocks/answer.mock.spec';
+import {
+  mockAttemptCorrect,
+  mockAttemptIncorrect,
+  mockAttemptProvider,
+} from '../../test/mocks/attempt.mock.spec';
+import {
+  mockQuestion,
+  mockQuestionProvider,
+} from '../../test/mocks/question.mock.spec';
+import { mockQuiz, mockQuizProvider } from '../../test/mocks/quiz.mock.spec';
+import {
+  mockResultCorrect,
+  mockResultProvider,
+} from '../../test/mocks/result.mock.spec';
+import { mockModel } from '../../test/utils/createMockModel.spec';
+import { mockUser } from '../../test/mocks/user.mock.spec';
+import { QUIZ } from '../constants/constants';
+import { QuizDoesNotExistException } from './exceptions/quizDoesNotExistException';
+import { Answer, AnswerDocument } from './schemas/answer.schema';
 import { Attempt, AttemptDocument } from './schemas/attempt.schema';
-import { Question } from './schemas/question.schema';
+import { Question, QuestionDocument } from './schemas/question.schema';
 import { Quiz, QuizDocument } from './schemas/quiz.schema';
+import { Result, ResultDocument } from './schemas/result.schema';
 import { QuizzesService } from './quizzes.service';
 
 describe('QuizService', () => {
   let service: QuizzesService;
   let attemptModel: Model<Attempt>;
   let quizModel: Model<Quiz>;
-
-  const mockUser: User = {
-    _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-    emailAddress: 'test@test.com',
-    passwordHash: 'some_bcrypt_hash',
-  };
-  const mockAnswers: Answer[] = [
-    {
-      _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      question: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      answer: 'Wasssup?',
-      isCorrect: true,
-    },
-    {
-      _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaab'),
-      question: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      answer: 'Yo?',
-    },
-  ];
-  const mockQuestions: Question[] = [
-    {
-      _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      quiz: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-      question: 'Wasssup?',
-      answers: mockAnswers,
-    },
-  ];
-  const mockQuiz: Quiz = {
-    _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-    owner: mockUser._id,
-    questions: mockQuestions,
-  };
+  let questionModel: Model<Question>;
+  let answerModel: Model<Answer>;
+  let resultModel: Model<Result>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         QuizzesService,
-        {
-          provide: getModelToken(Attempt.name),
-          useValue: {
-            findOne: jest.fn(),
-            create: jest.fn(),
-            find: jest.fn(),
-            exec: jest.fn(),
-          },
-        },
-        {
-          provide: getModelToken(Quiz.name),
-          useValue: {
-            findOne: jest.fn().mockReturnValue({
-              exec: jest.fn().mockResolvedValue(mockQuiz),
-            }),
-            find: jest.fn().mockReturnValue({
-              exec: jest.fn().mockResolvedValue([mockQuiz]),
-            }),
-            create: jest.fn().mockResolvedValue(mockQuiz),
-            exec: jest.fn(),
-          },
-        },
+        mockAnswerProvider,
+        mockAttemptProvider,
+        mockQuestionProvider,
+        mockQuizProvider,
+        mockResultProvider,
       ],
     }).compile();
 
     service = module.get<QuizzesService>(QuizzesService);
     quizModel = module.get<Model<QuizDocument>>(getModelToken(Quiz.name));
+    questionModel = module.get<Model<QuestionDocument>>(
+      getModelToken(Question.name),
+    );
+    answerModel = module.get<Model<AnswerDocument>>(getModelToken(Answer.name));
     attemptModel = module.get<Model<AttemptDocument>>(
       getModelToken(Attempt.name),
     );
+    resultModel = module.get<Model<ResultDocument>>(getModelToken(Result.name));
   });
 
   describe('createQuiz', () => {
     it('should create a new quiz', async () => {
+      jest.spyOn(quizModel, 'create').mockImplementationOnce(() =>
+        Promise.resolve(
+          mockModel<Quiz>({
+            _id: mockQuiz._id,
+            owner: mockQuiz.owner,
+            questions: [],
+            attempts: [],
+          }),
+        ),
+      );
+
+      jest.spyOn(questionModel, 'create').mockImplementationOnce(() =>
+        Promise.resolve(
+          mockModel<Question>({
+            _id: mockQuestion._id,
+            quiz: mockQuiz._id,
+            question: mockQuestion.question,
+            answers: [],
+          }),
+        ),
+      );
+
+      jest.spyOn(answerModel, 'create').mockImplementation(mockModel);
+
       expect(
         await service.create(mockQuiz, 'aaaaaaaaaaaaaaaaaaaaaaaa'),
       ).toEqual(mockQuiz);
     });
   });
 
-  describe('findOne', () => {
+  describe('findOneId', () => {
     it('should return a quiz', async () => {
-      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual(
+      jest
+        .spyOn(quizModel, 'findOne')
+        .mockImplementationOnce(() => mockModel<Quiz>(mockQuiz) as any);
+
+      expect(await service.findOneId(mockQuiz._id.toString())).toEqual(
         mockQuiz,
       );
     });
 
-    it('should return null', async () => {
-      jest.spyOn(quizModel, 'findOne').mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
-      } as any);
+    it('should throw an QuizDoesNotExistException exception', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          ({
+            populate: jest.fn().mockImplementationOnce(() => ({
+              exec: jest
+                .fn()
+                .mockImplementationOnce(() => Promise.resolve(null)),
+            })),
+          } as any),
+      );
 
-      expect(await service.findOne('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(null);
+      await expect(
+        service.findOneId(mockQuiz._id.toString()),
+      ).rejects.toThrowError(QuizDoesNotExistException);
     });
   });
 
   describe('findByUserId', () => {
-    it('should return an array of quizzes', async () => {
-      expect(await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaaa')).toEqual([
+    it('should return a quiz', async () => {
+      jest
+        .spyOn(quizModel, 'findOne')
+        .mockImplementationOnce(() => mockModel<Quiz>(mockQuiz) as any);
+
+      expect(await service.findByUserId(mockUser._id.toString())).toEqual(
         mockQuiz,
-      ]);
+      );
     });
 
-    it('should return an empty array', async () => {
-      jest.spyOn(quizModel, 'find').mockReturnValue({
-        exec: jest.fn().mockResolvedValue([]),
-      } as any);
-
-      expect(await service.findByUserId('aaaaaaaaaaaaaaaaaaaaaaab')).toEqual(
-        [],
+    it('should throw an QuizDoesNotExistException exception', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          ({
+            populate: jest.fn().mockImplementationOnce(() => ({
+              exec: jest
+                .fn()
+                .mockImplementationOnce(() => Promise.resolve(null)),
+            })),
+          } as any),
       );
+
+      await expect(
+        service.findByUserId(mockQuiz._id.toString()),
+      ).rejects.toThrowError(QuizDoesNotExistException);
     });
   });
 
   describe('attempt', () => {
-    it('should create a new attempt with 0 score', async () => {
-      const expectedResult: Attempt = {
-        _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-        quiz: mockQuiz._id,
-        user: mockUser._id,
-        results: [
-          {
-            _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            question: mockQuestions[0]._id,
-            answer: mockQuestions[0].answers[1]._id,
-          },
-        ],
-      };
-
+    it('should return an attempt', async () => {
       jest
-        .spyOn(attemptModel, 'create')
-        .mockImplementationOnce(() => Promise.resolve(expectedResult));
+        .spyOn(quizModel, 'findOne')
+        .mockImplementationOnce(() => mockModel<Quiz>(mockQuiz) as any);
 
-      expect(
-        await service.attempt(
-          {
-            quizId: mockQuiz._id.toString(),
-            answers: [
-              {
-                questionId: mockQuestions[0]._id.toString(),
-                answerId: mockQuestions[0].answers[1]._id.toString(),
-              },
-            ],
-          },
-          'aaaaaaaaaaaaaaaaaaaaaaaa',
-        ),
-      ).toEqual(expectedResult);
-    });
-
-    it('should create a new attempt with 0 score because of unanswered questions', async () => {
-      const expectedResult: Attempt = {
-        _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
+      const mockAttemptModel = mockModel<Attempt>({
+        _id: mockAttemptCorrect._id,
         quiz: mockQuiz._id,
         user: mockUser._id,
+        score: 0,
         results: [],
-      };
+      });
 
       jest
         .spyOn(attemptModel, 'create')
-        .mockImplementationOnce(() => Promise.resolve(expectedResult));
-
-      expect(
-        await service.attempt(
-          {
-            quizId: mockQuiz._id.toString(),
-            answers: [],
-          },
-          'aaaaaaaaaaaaaaaaaaaaaaaa',
-        ),
-      ).toEqual(expectedResult);
-    });
-
-    it('should create a new attempt with 1 score', async () => {
-      const expectedResult: Attempt = {
-        _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-        quiz: mockQuiz._id,
-        user: mockUser._id,
-        results: [
-          {
-            _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            question: mockQuestions[0]._id,
-            answer: mockQuestions[0].answers[0]._id,
-          },
-        ],
-      };
+        .mockImplementationOnce(() => Promise.resolve(mockAttemptModel));
 
       jest
-        .spyOn(attemptModel, 'create')
-        .mockImplementationOnce(() => Promise.resolve(expectedResult));
+        .spyOn(mockAttemptModel, 'toObject')
+        .mockReturnValue(mockAttemptCorrect);
+
+      jest.spyOn(resultModel, 'create').mockImplementation(mockModel);
 
       expect(
         await service.attempt(
@@ -207,67 +183,133 @@ describe('QuizService', () => {
             quizId: mockQuiz._id.toString(),
             answers: [
               {
-                questionId: mockQuestions[0]._id.toString(),
-                answerId: mockQuestions[0].answers[0]._id.toString(),
+                answerId: mockAnswerCorrect._id.toString(),
+                questionId: mockQuestion._id.toString(),
               },
             ],
           },
           'aaaaaaaaaaaaaaaaaaaaaaaa',
         ),
-      ).toEqual({
-        ...expectedResult,
-        score: 1,
-      });
+      ).toEqual(mockAttemptCorrect);
     });
 
-    it('should create a new attempt with 1 score because it only has incorrect answers', async () => {
-      const expectedResult: Attempt = {
-        _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-        quiz: mockQuiz._id,
-        user: mockUser._id,
-        results: [
-          {
-            _id: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            attempt: new Types.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa'),
-            question: mockQuestions[0]._id,
-            answer: mockQuestions[0].answers[0]._id,
-          },
-        ],
-      };
+    it('should throw an QuizDoesNotExistException exception', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          ({
+            populate: jest.fn().mockImplementationOnce(() => ({
+              exec: jest
+                .fn()
+                .mockImplementationOnce(() => Promise.resolve(null)),
+            })),
+          } as any),
+      );
 
-      jest.spyOn(models, 'findOne').mockReturnValue({
-        exec: jest.fn().mockResolvedValue({
-          ...mockQuiz,
-          questions: [
-            {
-              ...mockQuestions[0],
-              answers: [mockAnswers[1]],
-            },
-          ],
-        }),
-      });
-
-      jest
-        .spyOn(attemptModel, 'create')
-        .mockImplementationOnce(() => Promise.resolve(expectedResult));
-
-      expect(
-        await service.attempt(
+      await expect(
+        service.attempt(
           {
             quizId: mockQuiz._id.toString(),
             answers: [
               {
-                questionId: mockQuestions[0]._id.toString(),
-                answerId: mockQuestions[0].answers[0]._id.toString(),
+                answerId: mockAnswerCorrect._id.toString(),
+                questionId: mockQuestion._id.toString(),
               },
             ],
           },
           'aaaaaaaaaaaaaaaaaaaaaaaa',
         ),
-      ).toEqual({
-        ...expectedResult,
-        score: 1,
+      ).rejects.toThrowError(QuizDoesNotExistException);
+    });
+  });
+
+  describe('statistics', () => {
+    it('should return { attempts: 1, completions: 1, averageScore: 1 } (user selected correct answer)', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          mockModel<Quiz>({
+            ...mockQuiz,
+            attempts: [mockAttemptCorrect],
+          }) as any,
+      );
+
+      expect(await service.statistics(mockQuiz._id.toString())).toEqual({
+        attempts: 1,
+        completions: 1,
+        averageScore: 1,
       });
+    });
+
+    it('should return { attempts: 1, completions: 0, averageScore: 0 } (user not selected correct answer)', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          mockModel<Quiz>({
+            ...mockQuiz,
+            attempts: [mockAttemptIncorrect],
+          }) as any,
+      );
+
+      expect(await service.statistics(mockQuiz._id.toString())).toEqual({
+        attempts: 1,
+        completions: 0,
+        averageScore: 0,
+      });
+    });
+
+    it('should return { attempts: 1, completions: 1, averageScore:1 } (user not selected anything because all answers were wrong)', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          mockModel<Quiz>({
+            _id: mockQuiz._id,
+            owner: mockQuiz.owner,
+            questions: [
+              {
+                _id: mockQuestion._id,
+                quiz: mockQuiz._id,
+                question: mockQuestion.question,
+                answers: [mockAnswerIncorrect],
+              },
+            ],
+            attempts: [
+              {
+                _id: mockAttemptCorrect._id,
+                quiz: mockQuiz._id,
+                user: mockUser._id,
+                score: 1,
+                results: [
+                  {
+                    _id: mockResultCorrect._id,
+                    attempt: mockAttemptCorrect._id,
+                    question: mockQuestion._id,
+                    answer: new Types.ObjectId(QUIZ.UNSELECTED_ANSWER),
+                  },
+                ],
+              },
+            ],
+          }) as any,
+      );
+
+      expect(await service.statistics(mockQuiz._id.toString())).toEqual({
+        attempts: 1,
+        completions: 1,
+        averageScore: 1,
+      });
+    });
+
+    it('should throw an QuizDoesNotExistException exception', async () => {
+      jest.spyOn(quizModel, 'findOne').mockImplementationOnce(
+        () =>
+          ({
+            populate: jest.fn().mockImplementationOnce(() => ({
+              exec: jest
+                .fn()
+                .mockImplementationOnce(() => Promise.resolve(null)),
+            })),
+          } as any),
+      );
+
+      await expect(
+        service.statistics(mockQuiz._id.toString()),
+      ).rejects.toThrowError(QuizDoesNotExistException);
     });
   });
 });

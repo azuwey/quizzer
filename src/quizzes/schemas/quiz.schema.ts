@@ -3,7 +3,6 @@ import { Document, Types } from 'mongoose';
 import { User } from '../../users/schemas/user.schema';
 import { Attempt } from './attempt.schema';
 import { Question } from './question.schema';
-import { IStatistics } from '../interfaces/statistics.interface';
 
 export type QuizDocument = Quiz & Document;
 
@@ -15,21 +14,16 @@ export class Quiz {
   owner: Types.ObjectId;
 
   questions: Question[];
-  attempts?: Attempt[] = [];
-
-  // Dynamically calculate from the attempts
-  statistics?: IStatistics = {
-    attempts: 0,
-    completions: 0,
-    scores: 0,
-  };
+  attempts: Attempt[] = [];
 }
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);
+QuizSchema.set('toObject', { virtuals: true });
 QuizSchema.virtual('questions', {
   ref: 'Question',
   localField: '_id',
   foreignField: 'quiz',
+  getters: true,
 });
 QuizSchema.virtual('attempts', {
   ref: 'Attempt',

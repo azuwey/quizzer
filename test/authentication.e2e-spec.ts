@@ -8,7 +8,7 @@ import { User, UserSchema } from '../src/users/schemas/user.schema';
 import {
   closeInMongoDaemonConnection,
   rootMongooseTestModule,
-} from './mongoDaemon.testModule';
+} from './utils/mongoDaemon.spec';
 
 describe('AuthenticationController (e2e)', () => {
   let app: INestApplication;

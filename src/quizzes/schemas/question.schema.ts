@@ -20,10 +20,12 @@ export class Question {
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);
+QuestionSchema.set('toObject', { virtuals: true });
 QuestionSchema.virtual('answers', {
   ref: 'Answer',
   localField: '_id',
   foreignField: 'question',
+  getters: true,
 });
 QuestionSchema.virtual('results', {
   ref: 'Result',
